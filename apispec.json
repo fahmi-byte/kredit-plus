@@ -1,0 +1,163 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Kredit Plus API",
+    "description": "API Spec for Kredit Plus",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/api"
+    }
+  ],
+  "paths": {
+    "/transactions": {
+      "get": {
+        "security": [{
+          "Authentication": []
+        }],
+        "tags": [
+          "Transaction API"
+        ],
+        "description": "List all Transaction",
+        "summary": "List all Transaction",
+        "responses": {
+          "200": {
+            "description": "Success get all transactions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "number"
+                          },
+                          "customer_name": {
+                            "type": "string"
+                          },
+                          "merchant_name": {
+                            "type": "string"
+                          },
+                          "contract_number": {
+                            "type": "string"
+                          },
+                          "otr_price": {
+                            "type": "number"
+                          },
+                          "tenor": {
+                            "type": "string"
+                          },
+                          "installment_amount": {
+                            "type": "number"
+                          },
+                          "asset_name": {
+                            "type": "string"
+                          },
+                          "interest_amount": {
+                            "type": "number"
+                          },
+                          "admin_fee": {
+                            "type": "number"
+                          },
+                          "transaction_date": {
+                            "type": "string"
+                          },
+                          "interest_rate": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [{
+          "SignatureAuth": []
+        }],
+        "tags": [
+          "Transaction API"
+        ],
+        "description": "Create new Transaction",
+        "summary": "Create new Transaction",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customer_id": {
+                    "type": "number"
+                  },
+                  "merchant_id": {
+                    "type": "number"
+                  },
+                  "admin_fee": {
+                    "type": "number"
+                  },
+                  "asset_name": {
+                    "type": "string"
+                  },
+                  "tenor": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success get all transactions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "Authentication": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Api-Key",
+        "description": "Authentication for Kredit Plus API"
+      },
+      "SignatureAuth": {
+        "type": "signature",
+        "in": "header",
+        "name": "Signature",
+        "description": "Signature identify merchant"
+      }
+    }
+  }
+}
