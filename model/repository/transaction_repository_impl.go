@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"kredit-plus/helper"
 	"kredit-plus/model/domain"
 	"time"
@@ -44,6 +45,8 @@ func (repository *TransactionRepositoryImpl) Save(ctx context.Context, tx *sql.T
 
 	transaction.Id = lastId
 
+	fmt.Println("transaction berhasil")
+
 	return transaction
 }
 
@@ -51,7 +54,7 @@ func (repository *TransactionRepositoryImpl) FindAll(ctx context.Context, tx *sq
 	SQL := "select t.id, t.customer_id, c.full_name, t.merchant_id, m.merchant_name, t.otr, t.admin_fee, t.installment_amount, t.interest_amount, t.asset_name, t.interest_rate_id, ir.interest_rate, t.transaction_date, t.tenor from transactions t " +
 		"join customers c on c.id = t.customer_id " +
 		"join merchants m on m.id = t.merchant_id " +
-		"join interest_rates ir on ir.id = t.interest_rate_id"
+		"join interest_rates ir on ir.id = t.interest_rate_id ORDER BY t.id DESC"
 	rows, err := tx.QueryContext(ctx, SQL)
 	helper.PanicIfError(err)
 	defer rows.Close()

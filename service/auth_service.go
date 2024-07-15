@@ -2,10 +2,11 @@ package service
 
 import (
 	"context"
-	"database/sql"
+	"kredit-plus/model/web"
 )
 
 type AuthService interface {
-	Login()
-	VerificationApiKey(ctx context.Context, tx *sql.Tx, apiKey string) bool
+	AuthRegister(ctx context.Context, request web.RegisterRequest)
+	AuthLogin(ctx context.Context, email string, password string) string
+	VerificationApiKey(ctx context.Context, apiKey string) bool
 }

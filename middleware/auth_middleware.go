@@ -1,10 +1,14 @@
 package middleware
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"kredit-plus/helper"
 	"kredit-plus/model/web"
 	"net/http"
+	"strings"
 )
 
 type AuthMiddleware struct {
@@ -42,8 +46,48 @@ func (middleware AuthMiddleware) ServeHTTP(writer http.ResponseWriter, request *
 
 			helper.WriteToReponseBody(writer, webResponse)
 		}
-	} else {
+	} else if url == "/api/auth/login" || url == "/api/auth/register" {
 		middleware.Handler.ServeHTTP(writer, request)
+	} else {
+		ctx := TokenValidationMiddleware(writer, request)
+		if ctx != nil {
+			middleware.Handler.ServeHTTP(writer, request.WithContext(ctx))
+		} else {
+			writer.Header().Add("Content-Type", "application/json")
+			writer.WriteHeader(http.StatusUnauthorized)
+
+			webResponse := web.WebResponse{
+				Code:   http.StatusUnauthorized,
+				Status: "UNAUTHORIZED",
+			}
+
+			helper.WriteToReponseBody(writer, webResponse)
+		}
 	}
 
+}
+
+func TokenValidationMiddleware(w http.ResponseWriter, r *http.Request) context.Context {
+	tokenString := r.Header.Get("Authorization")
+	if tokenString == "" {
+		return nil
+	}
+
+	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
+	fmt.Println(tokenString, "isi token")
+
+	claims := &helper.Claims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return helper.JWTSecret, nil
+	})
+
+	if err != nil || !token.Valid {
+		return nil
+	}
+
+	fmt.Println("lolos")
+
+	// Set claims in context
+	ctx := context.WithValue(r.Context(), "claims", claims)
+	return ctx
 }

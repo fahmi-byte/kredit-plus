@@ -11,4 +11,5 @@ type Customer struct {
 	Salary       float32
 	IdentityCard string
 	SelfiePhoto  string
+	Pin          string
 }

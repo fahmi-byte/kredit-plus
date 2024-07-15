@@ -5,6 +5,6 @@ import (
 	"net/http"
 )
 
-type InstallmentController interface {
+type InstallmentProcessController interface {
 	InstallmentProcess(writer http.ResponseWriter, request *http.Request, params httprouter.Params)
 }

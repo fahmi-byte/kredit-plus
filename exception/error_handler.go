@@ -1,6 +1,7 @@
 package exception
 
 import (
+	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
 	"kredit-plus/helper"
@@ -19,7 +20,11 @@ func ErrorHandler(writer http.ResponseWriter, request *http.Request, err interfa
 		return
 	}
 
-	internalServerError(writer, request, err)
+	fmt.Println(err, "isi error apaa")
+
+	if internalServerError(writer, request, err) {
+		return
+	}
 
 }
 
@@ -62,7 +67,7 @@ func notFoundError(writer http.ResponseWriter, request *http.Request, err interf
 	}
 }
 
-func internalServerError(writer http.ResponseWriter, request *http.Request, err interface{}) {
+func internalServerError(writer http.ResponseWriter, request *http.Request, err interface{}) bool {
 	logger := logrus.New()
 	file, _ := os.OpenFile("application.log", os.O_APPEND|os.O_CREATE|os.O_RDONLY, 0666)
 	defer file.Close()
@@ -78,4 +83,5 @@ func internalServerError(writer http.ResponseWriter, request *http.Request, err 
 	}
 
 	helper.WriteToReponseBody(writer, webResponse)
+	return true
 }

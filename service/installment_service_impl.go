@@ -20,7 +20,7 @@ func NewInstallmentService(installmentRepository repository.InstallmentRepositor
 	return &InstallmentServiceImpl{InstallmentRepository: installmentRepository, DB: DB}
 }
 
-func (service *InstallmentServiceImpl) CreateInstallment(ctx context.Context, transactionChan chan web.TransactionResponse, paymentCompleteChan chan bool, errChan chan error) {
+func (service *InstallmentServiceImpl) CreateInstallment(ctx context.Context, transactionChan chan web.TransactionResponse, installmentCompleteChan chan bool, errChan chan error) {
 	select {
 	case <-ctx.Done():
 		return
@@ -30,6 +30,7 @@ func (service *InstallmentServiceImpl) CreateInstallment(ctx context.Context, tr
 	helper.PanicIfError(err)
 	defer helper.CommitOrRollback(tx)
 	requestTransaction := <-transactionChan
+
 	var installmentCount int
 	switch requestTransaction.Tenor {
 	case "tenor_1":
@@ -45,16 +46,19 @@ func (service *InstallmentServiceImpl) CreateInstallment(ctx context.Context, tr
 	installments := []domain.InstallmentDetail{}
 
 	now := time.Now()
+	lastDayOfMonth := time.Date(now.Year(), now.Month()+1, 0, 0, 0, 0, 0, time.UTC)
+
 	for i := 1; i <= installmentCount; i++ {
-		now = now.AddDate(0, 1, 0)
 		installments = append(installments, domain.InstallmentDetail{
 			TransactionId: requestTransaction.Id,
 			Amount:        requestTransaction.InstallmentAmount,
+			TotalPayment:  requestTransaction.InstallmentAmount,
 			PaymentStatus: false,
 			Date:          time.Now(),
 			Month:         i,
-			DueDate:       now,
+			DueDate:       lastDayOfMonth,
 		})
+		lastDayOfMonth = lastDayOfMonth.AddDate(0, 1, 0)
 	}
 
 	success := service.InstallmentRepository.Save(ctx, tx, installments)
@@ -62,5 +66,37 @@ func (service *InstallmentServiceImpl) CreateInstallment(ctx context.Context, tr
 		errChan <- errors.New("Fail Insert Batch")
 	}
 
-	paymentCompleteChan <- true
+	installmentCompleteChan <- true
+}
+
+func (service *InstallmentServiceImpl) FindOne(ctx context.Context, installmentId int) domain.InstallmentDetail {
+	tx, err := service.DB.Begin()
+	helper.PanicIfError(err)
+	defer helper.CommitOrRollback(tx)
+	result, err := service.InstallmentRepository.FindById(ctx, tx, installmentId)
+	helper.PanicIfError(err)
+
+	return result
+}
+
+func (service *InstallmentServiceImpl) GetInstallmentForPayment(ctx context.Context, installmentId int) web.InstallmentResponsePayment {
+	tx, err := service.DB.Begin()
+	helper.PanicIfError(err)
+	defer helper.CommitOrRollback(tx)
+
+	result, err := service.InstallmentRepository.FindById(ctx, tx, installmentId)
+	helper.PanicIfError(err)
+
+	return helper.ToInstallmentPaymentResponse(result)
+}
+
+func (service *InstallmentServiceImpl) FindAllInstallmentCustomer(ctx context.Context, customerId int) []domain.InstallmentDetail {
+	tx, err := service.DB.Begin()
+	helper.PanicIfError(err)
+	defer helper.CommitOrRollback(tx)
+
+	result, err := service.InstallmentRepository.FindAllById(ctx, tx, customerId)
+	helper.PanicIfError(err)
+
+	return result
 }

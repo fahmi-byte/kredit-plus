@@ -6,6 +6,6 @@ import (
 )
 
 type TransactionService interface {
-	Create(ctx context.Context, transactionChan chan web.TransactionCreateRequest, transactionResponseChan chan web.TransactionResponse, transactionValidChan chan bool, errChan chan error)
+	Create(ctx context.Context, transactionChan chan web.TransactionCreateRequest, transactionResponseChan chan web.TransactionResponse, errChan chan error)
 	FindAll(ctx context.Context) []web.TransactionResponseList
 }

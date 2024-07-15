@@ -66,3 +66,11 @@ func ToTransactionListResponse(transactions []domain.Transaction) []web.Transact
 
 	return transactionListResponse
 }
+
+func ToInstallmentPaymentResponse(installment domain.InstallmentDetail) web.InstallmentResponsePayment {
+	return web.InstallmentResponsePayment{
+		ContractNumber: installment.ContractNumber,
+		TotalPayment:   installment.TotalPayment,
+		Month:          installment.Month,
+	}
+}

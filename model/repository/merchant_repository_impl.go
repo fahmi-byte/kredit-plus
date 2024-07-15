@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"kredit-plus/constants"
 	"kredit-plus/helper"
 	"kredit-plus/model/domain"
 	"strconv"
@@ -31,4 +32,22 @@ func (m *MerchantRepositoryImpl) FindById(ctx context.Context, tx *sql.Tx, merch
 	} else {
 		return merchant, errors.New("Merchant with id " + strconv.Itoa(merchantId) + " is Not Found")
 	}
+}
+
+func (m *MerchantRepositoryImpl) BalanceUpdate(ctx context.Context, tx *sql.Tx, merchantId int, updateType constants.OperatorType, amount float32) {
+	var balance float32
+	query := "SELECT balance FROM merchants WHERE id = $1"
+	err := tx.QueryRowContext(ctx, query, merchantId).Scan(&balance)
+	helper.PanicIfError(err)
+
+	switch updateType {
+	case constants.Increment:
+		balance += amount
+	case constants.Decrement:
+		balance -= amount
+	}
+
+	updateQuery := "UPDATE merchants SET balance = $1 WHERE id = $2"
+	_, err = tx.ExecContext(ctx, updateQuery, balance, merchantId)
+	helper.PanicIfError(err)
 }
